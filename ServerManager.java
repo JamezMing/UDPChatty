@@ -85,5 +85,11 @@ public class ServerManager {
 		userList.add(newUser);
 		return 0;
 	}
+	
+	public User findUserByName(String name){
+		for(User)
+	}
+	
+	
 
 }
