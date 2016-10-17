@@ -24,5 +24,4 @@ public class ClientManager {
 		lisTh.start();
 	}
 	
-
 }

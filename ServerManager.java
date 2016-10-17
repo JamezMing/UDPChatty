@@ -3,6 +3,7 @@ import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -27,10 +28,22 @@ public class ServerManager {
 		userList.add(user);
 	}
 	
+	@Deprecated
 	public boolean hasUser(InetAddress userAdd){
 		boolean hasUserExist = false;
 		for (User regUser: userList){
-			if(regUser.getAddr().equals(userAdd)){
+			if((regUser.getAddr().equals(userAdd))){
+				hasUserExist = true;
+				break;
+			}
+		}
+		return hasUserExist;
+	}
+	
+	public boolean hasUser(InetAddress userAdd, String userName){
+		boolean hasUserExist = false;
+		for (User regUser: userList){
+			if((regUser.getAddr().equals(userAdd))&&(regUser.getName().equalsIgnoreCase(userName))){
 				hasUserExist = true;
 				break;
 			}
@@ -57,6 +70,20 @@ public class ServerManager {
 	public void init(){
 		ServerListenThread lisTh = new ServerListenThread(serverListenSoc, this);
 		lisTh.start();
+	}
+	
+	//The function has 2 return states, 0 for register successful, 1 for full server, 2 for user has already registered
+	public int registerClient(String name, String address) throws UnknownHostException, HasRegisteredException{ 
+		if(hasUser(InetAddress.getByName(address), name)){
+			return 2;
+		}
+		if(userList.size() >= 5){
+			return 1;
+		}
+		User newUser = new User(name, InetAddress.getByName(address));
+		newUser.register();
+		userList.add(newUser);
+		return 0;
 	}
 
 }
