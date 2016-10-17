@@ -7,6 +7,14 @@ public class User {
 	private int recevingPort;
 	//private int sendingPort;
 	
+	//The constructor is used for test only. 
+	public User(InetAddress address){
+		usercount++;
+		name = new String("User" + usercount);
+		addr = address;
+		recevingPort = GlobalVariables.HANDSHAKING_PORT;
+	}
+	
 	public User(InetAddress address, int recPortNum, int sendPortNum){
 		usercount++;
 		name = new String("User" + usercount);

@@ -6,15 +6,17 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-
+@Deprecated
 public class ServerSendingThread extends Thread{
 	private DatagramSocket dataSendPort;
+	private ServerManager myManager;
 	private User targetUser;
 
 	
-	public ServerSendingThread(DatagramSocket send, User target) throws SocketException{
+	public ServerSendingThread(DatagramSocket send, User target, ServerManager father) throws SocketException{
 		dataSendPort = send;
 		targetUser = target;
+		myManager = father;
 	}
 	
 	

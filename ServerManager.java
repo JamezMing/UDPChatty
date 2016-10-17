@@ -45,8 +45,18 @@ public class ServerManager {
 		}
 	}
 	
+	public void broadCast(String message, InetAddress except_addr) throws IOException{
+		for(User u:userList){
+			if(!u.getAddr().equals(except_addr)){
+				DatagramPacket sendPac = new DatagramPacket(message.getBytes(), message.length(), u.getAddr(), u.getRecevingPort());
+				serverSendingSoc.send(sendPac);
+			}
+		}
+	}
+	
 	public void init(){
-		
+		ServerListenThread lisTh = new ServerListenThread(serverListenSoc, this);
+		lisTh.start();
 	}
 
 }

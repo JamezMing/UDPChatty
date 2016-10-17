@@ -4,16 +4,15 @@ import java.net.DatagramSocket;
 import java.net.SocketException;
 
 public class ClientListenThread extends Thread{
-	private int recSocNum; 
+	private DatagramSocket listSoc;
 	private boolean isRunning = true;
 	
-	public ClientListenThread(int soc){
-		recSocNum = soc;
+	public ClientListenThread(DatagramSocket soc){
+		listSoc = soc;
 	}
 	
 	public void run(){
 		try {
-			DatagramSocket listSoc = new DatagramSocket(recSocNum);
 			byte[] buffer = new byte[1024];
 			DatagramPacket recPac = new DatagramPacket(buffer, 1024);
 			while(isRunning){
