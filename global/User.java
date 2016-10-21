@@ -1,15 +1,8 @@
+package global;
 import java.net.InetAddress;
 import java.util.ArrayList;
-class HasRegisteredException extends Exception{
-	/**
-	 * 
-	 */
-	private static final long serialVersionUID = 1L;
+import global.GlobalVariables;
 
-	public HasRegisteredException(String msg){
-		super(msg);
-	}
-}
 public class User {
 	private static int usercount = 0;
 	private String name;
@@ -84,7 +77,7 @@ public class User {
 	
 	public void register() throws HasRegisteredException{
 		if(isRegistered == true){
-			throw new HasRegisteredException("The user name and IP conbinations has been registered");
+			throw new HasRegisteredException();
 		}else{
 			isRegistered = true;
 		}

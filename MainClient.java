@@ -2,6 +2,9 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Scanner;
 
+import client.ClientManager;
+import server.ServerManager;
+
 public class MainClient {
 	public static void main(String[] args) throws SocketException, UnknownHostException{
 		System.out.println("Please enter your option: 1 for Server and 2 for Client");

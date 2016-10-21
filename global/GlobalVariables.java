@@ -1,3 +1,4 @@
+package global;
 
 public class GlobalVariables {
 	public static final int HANDSHAKING_PORT = 6666;
@@ -16,4 +17,5 @@ public class GlobalVariables {
 	public static final String REFER_ACTION = "ref_a";
 	public static final String CHAT_ACTION = "cha_a";
 	public static final String BYE_ACTION = "bye_a";
+
 }

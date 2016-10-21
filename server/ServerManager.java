@@ -1,3 +1,4 @@
+package server;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -6,6 +7,11 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import global.*;
+
+import global.HasRegisteredException;
+import global.User;
+import server.ServerListenThread;
 
 public class ServerManager {
 	ArrayList<User> userList = new ArrayList<User>();
@@ -67,6 +73,7 @@ public class ServerManager {
 		}
 	}
 	
+	
 	public void init(){
 		ServerListenThread lisTh = new ServerListenThread(serverListenSoc, this);
 		lisTh.start();
@@ -86,8 +93,26 @@ public class ServerManager {
 		return 0;
 	}
 	
-	public User findUserByName(String name){
-		for(User)
+	public boolean registerClientPort(User user, int recPortNum){
+		if(userList.contains(user)){
+			portUserMap.put(recPortNum, user);
+			return true;
+		}
+		else{
+			return false;
+		}
+	}
+	
+	public User[] findUserByName(String name){
+		User[] results = new User[5];
+		int resCount = 0;
+		for(User u:userList){
+			if(u.getName().equals(name)){
+				results[resCount] = u;
+				resCount++;
+			}
+		}
+		return results;
 	}
 	
 	

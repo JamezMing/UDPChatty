@@ -1,7 +1,9 @@
+package server;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
+import global.User;
 
 public class ServerListenThread extends Thread{
 	private DatagramSocket recSoc;
