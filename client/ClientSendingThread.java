@@ -3,9 +3,7 @@ import java.io.*;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
-import java.net.UnknownHostException;
 import java.util.Scanner;
-import global.*;
 
 public class ClientSendingThread extends Thread{
 	private DatagramSocket sendSoc;
@@ -25,6 +23,7 @@ public class ClientSendingThread extends Thread{
 			BufferedReader reader = new BufferedReader(new InputStreamReader(System.in));
 			while(hostAddr == null){
 				System.out.println("Host Address Undefined, please enter a valid host address to continue");
+				@SuppressWarnings("resource")
 				Scanner sc = new Scanner(System.in);
 				String conaddr = sc.nextLine();
 				hostAddr = InetAddress.getByName(conaddr);

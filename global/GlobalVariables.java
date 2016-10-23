@@ -17,5 +17,8 @@ public class GlobalVariables {
 	public static final String REFER_ACTION = "ref_a";
 	public static final String CHAT_ACTION = "cha_a";
 	public static final String BYE_ACTION = "bye_a";
+	
+	public static final String token = new String("(?<!%a)%_");
+	public static final String delimiter = new String("%_");
 
 }

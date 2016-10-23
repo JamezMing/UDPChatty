@@ -2,8 +2,9 @@ package server;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.InetAddress;
-import global.User;
+
+import global.HasRegisteredException;
+import requestsParser.*;
 
 public class ServerListenThread extends Thread{
 	private DatagramSocket recSoc;
@@ -21,18 +22,17 @@ public class ServerListenThread extends Thread{
 			DatagramPacket recPac = new DatagramPacket(buffer, 1024);
 			while(isRunning){
 				recSoc.receive(recPac);
-				if(!myManager.hasUser(recPac.getAddress())){
-					User newUser = new User(recPac.getAddress());
-					myManager.addUser(newUser);
-				}
-				String str_receive = new String(recPac.getData(),0,recPac.getLength()) +   
-	                    " from " + recPac.getAddress().getHostAddress() + ":" + recPac.getPort(); 
+				String str_receive = new String(recPac.getData(),0,recPac.getLength());
+				Request req = new Request(str_receive, recPac.getAddress(), recPac.getPort());
+				myManager.processRequest(req);
+				
+				//TODO
 				myManager.broadCast(str_receive,recPac.getAddress());
 				System.out.println(str_receive);
 				recPac.setLength(1024);
 			}
 			recSoc.close();
-		} catch (IOException e) {
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
