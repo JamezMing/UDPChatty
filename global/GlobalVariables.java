@@ -20,5 +20,8 @@ public class GlobalVariables {
 	
 	public static final String token = new String("(?<!%a)%_");
 	public static final String delimiter = new String("%_");
+	
+	public static final Object lock1 = new Object();
+	public static final Object lock2 = new Object();
 
 }

@@ -1,9 +1,6 @@
 package server;
-import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-
-import global.HasRegisteredException;
 import requestsParser.*;
 
 public class ServerListenThread extends Thread{

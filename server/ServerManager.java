@@ -7,6 +7,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import global.HasRegisteredException;
 import global.GlobalVariables;
@@ -16,13 +18,12 @@ import requestsParser.RequestExecutor;
 import server.ServerListenThread;
 
 public class ServerManager {
-	ArrayList<User> userList = new ArrayList<User>();
+	private volatile CopyOnWriteArrayList<User> userList = new CopyOnWriteArrayList<User>();
 	private global.GlobalVariables GV;
-	InetAddress nextServerAddr;
-	int nextServerPort;
-	private RequestExecutor exec;
-	DatagramSocket serverListenSoc;
-	DatagramSocket serverSendingSoc;
+	private InetAddress nextServerAddr;
+	private int nextServerPort;
+	private DatagramSocket serverListenSoc;
+	private DatagramSocket serverSendingSoc;
 	
 	
 	public ServerManager(int sendingPort, int recevingPort, InetAddress addr, int port){
@@ -58,79 +59,8 @@ public class ServerManager {
 	}
 	
 	
-	public void processRequest(Request req) throws HasRegisteredException{
-		exec = new RequestExecutor(req);
-		exec.start();
-		String[] args = exec.returnArgs();
-		String type = args[0];
-		Integer index;
-		switch(type){
-		case GlobalVariables.REGISTER_ACTION:
-			index = new Integer(args[1]);
-			User newUser = new User(args[2], req.getSenderAddr() , (int)new Integer(args[4]));
-			if(!hasUser(req.getSenderAddr(),args[2]) && (userList.size() < 5)){	
-				newUser.logHistoryRequest(req, index);
-				registerClient(newUser);
-				String responce = new String(GlobalVariables.REGISTER_SUCCESS + GlobalVariables.delimiter + index.toString()); 
-				new ServerSendingThread(serverSendingSoc, newUser, responce).start();
-			}
-			else if((userList.size() >= 5)){
-				String responce = new String(GlobalVariables.REGISTER_DENIED + GlobalVariables.delimiter + index.toString() + GlobalVariables.delimiter + 
-						nextServerAddr.toString() + GlobalVariables.delimiter + new Integer(nextServerPort).toString());
-				new ServerSendingThread(serverSendingSoc, newUser, responce).start();
-			}
-			else{
-				String responce = new String(GlobalVariables.REGISTER_DENIED + GlobalVariables.delimiter + index.toString());
-				new ServerSendingThread(serverSendingSoc, newUser, responce).start();
-			}
-			break;
-		case GlobalVariables.PUBLISH_ACTION:
-			index = new Integer(args[1]);
-			int tar = getUserInList(args[2], req.getSenderAddr());
-			boolean status = (Boolean) null;
-			if(args[4].equalsIgnoreCase("on")){
-				status = true;
-			}
-			else if(args[4].equalsIgnoreCase("off")){
-				status = false;
-			}
-			else{
-				String responce = new String(GlobalVariables.PUBLISH_DENIED + GlobalVariables.delimiter + index.toString());
-				new ServerSendingThread(serverSendingSoc, userList.get(tar), responce).start();
-			}
-			
-			if(tar != -1){
-				userList.get(tar).setReceivePort(new Integer(args[3]));
-				userList.get(tar).setAvaliability(status);
-				ArrayList<User> listOfConnections = new ArrayList<User>();
-				//TODO
-			}
-		}	
-	}
-
-
-	
-	@Deprecated
-	public boolean hasUser(InetAddress userAdd){
-		boolean hasUserExist = false;
-		for (User regUser: userList){
-			if((regUser.getAddr().equals(userAdd))){
-				hasUserExist = true;
-				break;
-			}
-		}
-		return hasUserExist;
-	}
-	
-	public boolean hasUser(InetAddress userAdd, String userName){
-		boolean hasUserExist = false;
-		for (User regUser: userList){
-			if((regUser.getAddr().equals(userAdd))&&(regUser.getName().equalsIgnoreCase(userName))){
-				hasUserExist = true;
-				break;
-			}
-		}
-		return hasUserExist;
+	public void processRequest(Request req){
+		new RequestExecutor(req, this).start();
 	}
 	
 	public void broadCast(String message) throws IOException{
@@ -150,14 +80,26 @@ public class ServerManager {
 	}
 	
 	
-	public void authenticateUser(User self, User[] users){
+	public synchronized void authenticateUser(User self, User[] users){
 		for (User u:users){
 			u.makeFriend(self);
 		}
 	}
 	
+	public synchronized int getNumOfUser(){
+		return userList.size();
+	}
+	
+	public synchronized InetAddress getNextServerAddr(){
+		return nextServerAddr;
+	}
+	
+	public synchronized int getNextServerPort(){
+		return nextServerPort;
+	}
+	
 
-	public int registerClient(User user) throws HasRegisteredException{
+	public synchronized int registerClient(User user) throws HasRegisteredException{
 		
 		if(userList.size() >= 5){
 			return 1;
@@ -185,7 +127,7 @@ public class ServerManager {
 	}
 	
 	//The function has 2 return states, 0 for register successful, 1 for full server, 2 for user has already registered
-	public int registerClient(String name, String address, int portNum) throws UnknownHostException, HasRegisteredException{ 
+	public synchronized int registerClient(String name, String address, int portNum) throws UnknownHostException, HasRegisteredException{ 
 		if(hasUser(InetAddress.getByName(address), name)){
 			return 2;
 		}
@@ -207,6 +149,18 @@ public class ServerManager {
 		return -1;
 	}
 	
+	public DatagramSocket getServerSendingPort(){
+		return this.serverSendingSoc;
+	}
+	
+	public DatagramSocket getServerListeningPort(){
+		return this.serverListenSoc;
+	}
+	
+	public synchronized CopyOnWriteArrayList<User> getUserList(){
+		return userList;
+	}
+	
 	public User[] findUserByName(String name){
 		User[] results = new User[5];
 		int resCount = 0;
@@ -218,6 +172,28 @@ public class ServerManager {
 		}
 		return results;
 	}
+	public boolean hasUser(InetAddress userAdd){
+		boolean hasUserExist = false;
+		for (User regUser: userList){
+			if((regUser.getAddr().equals(userAdd))){
+				hasUserExist = true;
+				break;
+			}
+		}
+		return hasUserExist;
+	}
+
+	public boolean hasUser(InetAddress userAdd, String userName){
+		boolean hasUserExist = false;
+		for (User regUser: userList){
+			if((regUser.getAddr().equals(userAdd))&&(regUser.getName().equalsIgnoreCase(userName))){
+				hasUserExist = true;
+				break;
+			}
+		}
+		return hasUserExist;
+	}
+	
 	
 	protected void closeDown(){
 		serverListenSoc.close();

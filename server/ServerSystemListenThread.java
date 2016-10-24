@@ -23,6 +23,7 @@ public class ServerSystemListenThread extends Thread{
 	        	myManager.closeDown();
 	        	break;
 	        }
+	        myManager.broadCast(msg);
 	        
 		}}catch (IOException | InterruptedException e) {
 			// TODO Auto-generated catch block
