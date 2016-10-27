@@ -8,10 +8,7 @@ import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.atomic.AtomicBoolean;
-
 import global.HasRegisteredException;
-import global.GlobalVariables;
 import global.User;
 import requestsParser.Request;
 import requestsParser.RequestExecutor;
@@ -24,6 +21,7 @@ public class ServerManager {
 	private int nextServerPort;
 	private DatagramSocket serverListenSoc;
 	private DatagramSocket serverSendingSoc;
+
 	
 	
 	public ServerManager(int sendingPort, int recevingPort, InetAddress addr, int port){
@@ -109,7 +107,7 @@ public class ServerManager {
 		return 0;
 	}
 	
-	public User[] findListOfUsers(String[] names){
+	public synchronized User[] findListOfUsers(String[] names){
 		User[] list = new User[5];
 		int resCount = 0;
 		ArrayList<String> namelist = new ArrayList<String>(Arrays.asList(names));
@@ -140,7 +138,7 @@ public class ServerManager {
 		return 0;
 	}
 	
-	public int getUserInList(String name, InetAddress addr){
+	public synchronized int getUserInList(String name, InetAddress addr){
 		for(User u:userList){
 			if(u.getName().equals(name) && u.getAddr().equals(addr)){
 				return userList.indexOf(u);
@@ -172,7 +170,16 @@ public class ServerManager {
 		}
 		return results;
 	}
-	public boolean hasUser(InetAddress userAdd){
+	
+	public User findUserByName_Single(String name){
+		for(User u:userList){
+			if(u.getName().equals(name)){
+				return u;
+			}
+		}
+		return null;
+	}
+	public synchronized boolean hasUser(InetAddress userAdd){
 		boolean hasUserExist = false;
 		for (User regUser: userList){
 			if((regUser.getAddr().equals(userAdd))){
@@ -183,7 +190,7 @@ public class ServerManager {
 		return hasUserExist;
 	}
 
-	public boolean hasUser(InetAddress userAdd, String userName){
+	public synchronized boolean hasUser(InetAddress userAdd, String userName){
 		boolean hasUserExist = false;
 		for (User regUser: userList){
 			if((regUser.getAddr().equals(userAdd))&&(regUser.getName().equalsIgnoreCase(userName))){
