@@ -52,12 +52,32 @@ public class User {
 		isInitiated = true;
 	}
 	
-	public void logHistoryRequest(Request req, Integer index){
-		history.put(index, req);
+	public boolean logHistoryRequest(Request req, Integer index){
+		if(history.containsKey(index)){
+			return false;
+		}
+		else{
+			history.put(index, req);
+			return true;
+		}
 	}
 	
 	public Request retrieveHistoryItem(Integer index){
 		return history.get(index);
+	}
+	
+	public boolean hasIndexLogged(Integer index){
+		if(history.containsKey(index)){
+			return true;
+		}
+		else{
+			return false;
+		}
+		
+	}
+	
+	public void setListOfAllowedUsers(ArrayList<User> list){
+		this.allowedListofUser = list;
 	}
 	
 	public int getHistorySize(){

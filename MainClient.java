@@ -8,6 +8,7 @@ import server.ServerManager;
 public class MainClient {
 	public static void main(String[] args) throws SocketException, UnknownHostException{
 		System.out.println("Please enter your option: 1 for Server and 2 for Client");
+		System.out.println("New Process Request");
 		@SuppressWarnings("resource")
 		Scanner sc = new Scanner(System.in);
 		int op = sc.nextInt();
