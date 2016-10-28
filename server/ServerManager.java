@@ -141,6 +141,7 @@ public class ServerManager {
 	public synchronized int getUserInList(String name, InetAddress addr){
 		for(User u:userList){
 			if(u.getName().equals(name) && u.getAddr().equals(addr)){
+				System.out.println("User Found");
 				return userList.indexOf(u);
 			}
 		}

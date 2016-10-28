@@ -23,5 +23,6 @@ public class GlobalVariables {
 	
 	public static final Object lock1 = new Object();
 	public static final Object lock2 = new Object();
+	public static final String INFORMATION_REQUEST_DENIED = "inq_d";
 
 }

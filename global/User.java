@@ -53,7 +53,7 @@ public class User {
 	}
 	
 	public boolean logHistoryRequest(Request req, Integer index){
-		if(history.containsValue(index)){
+		if(history.containsKey(index)){
 			return false;
 		}
 		else{
@@ -64,6 +64,16 @@ public class User {
 	
 	public Request retrieveHistoryItem(Integer index){
 		return history.get(index);
+	}
+	
+	public boolean hasIndexLogged(Integer index){
+		if(history.containsKey(index)){
+			return true;
+		}
+		else{
+			return false;
+		}
+		
 	}
 	
 	public void setListOfAllowedUsers(ArrayList<User> list){

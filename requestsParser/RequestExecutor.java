@@ -37,6 +37,7 @@ public class RequestExecutor extends Thread{
 			if(newUser.logHistoryRequest(req, index) == false){
 				String responce = new String(GlobalVariables.REGISTER_DENIED + GlobalVariables.delimiter + index.toString());
 				new ServerSendingThread(myManager.getServerSendingPort(), newUser, responce).start();
+				break;
 			}
 			if(!myManager.hasUser(req.getSenderAddr(),args[2]) && (myManager.getNumOfUser() < 5)){	
 				myManager.registerClient(newUser);
@@ -57,13 +58,16 @@ public class RequestExecutor extends Thread{
 			index = new Integer(args[1]);
 			int tar = myManager.getUserInList(args[2], req.getSenderAddr());
 			if (myManager.getUserList().isEmpty() || tar == -1){
+
 				//TODO: need to consturct a user not registered error in order to make it work
 				throw new Exception("The message is not sent from a validated user");
 			}
 			if(myManager.getUserList().get(tar).logHistoryRequest(req, index) == false){
-				String responce = new String(GlobalVariables.REGISTER_DENIED + GlobalVariables.delimiter + index.toString());
+				String responce = new String(GlobalVariables.PUBLISH_DENIED + GlobalVariables.delimiter + index.toString());
 				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar), responce).start();
+				break;
 			}
+
 			int status = -1;
 			if(args[4].equalsIgnoreCase("on")){
 				status = 1;
@@ -106,6 +110,23 @@ public class RequestExecutor extends Thread{
 				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar), responce).start();
 			}
 			break;
+		case GlobalVariables.IMFORMATION_REQUEST_ACTION:
+			index = new Integer(args[1]);
+			int tar_2 = myManager.getUserInList(args[2], req.getSenderAddr());
+			if (myManager.getUserList().isEmpty() || tar_2 == -1){
+				//TODO: need to consturct a user not registered error in order to make it work
+				throw new Exception("The message is not sent from a validated user");
+			}
+			if(myManager.getUserList().get(tar_2).hasIndexLogged(index) == false){
+				String responce = new String(GlobalVariables.INFORMATION_REQUEST_DENIED + GlobalVariables.delimiter + index.toString());
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_2), responce).start();
+				break;
+			}
+			Request retrieved = myManager.getUserList().get(tar_2).retrieveHistoryItem(index);
+			String msgNew = retrieved.getMessage();
+			new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_2), msgNew).start();
+			break;
+			
 			
 				
 				//TODO
