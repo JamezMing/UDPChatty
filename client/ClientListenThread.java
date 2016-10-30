@@ -1,15 +1,22 @@
 package client;
 import java.io.IOException;
+import java.math.BigInteger;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
 import java.net.SocketException;
+import java.util.Arrays;
+
+import global.GlobalVariables;
+
 
 public class ClientListenThread extends Thread{
 	private DatagramSocket listSoc;
 	private boolean isRunning = true;
+	ClientManager myManager;
 	
-	public ClientListenThread(DatagramSocket soc){
+	public ClientListenThread(DatagramSocket soc, ClientManager manager){
 		listSoc = soc;
+		myManager = manager;
 	}
 	
 	public void run(){
@@ -18,6 +25,12 @@ public class ClientListenThread extends Thread{
 			DatagramPacket recPac = new DatagramPacket(buffer, 1024);
 			while(isRunning){
 				listSoc.receive(recPac);
+				if(new String(recPac.getData()).startsWith(GlobalVariables.REGISTER_SUCCESS)){
+					String strRec = new String(recPac.getData(),0,recPac.getLength());
+					myManager.decodeSecret(new BigInteger(strRec.split(GlobalVariables.delimiter)[2], 16).toByteArray());
+					System.out.println("Register Successful");
+				}
+				
 				String str_receive = new String(recPac.getData(),0,recPac.getLength()) +   
 	                    " from " + recPac.getAddress().getHostAddress() + ":" + recPac.getPort();  
 				System.out.println(str_receive);

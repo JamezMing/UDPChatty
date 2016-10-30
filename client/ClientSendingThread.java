@@ -5,17 +5,24 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.util.Scanner;
 
+import javax.xml.bind.DatatypeConverter;
+
+import global.GlobalVariables;
+
 public class ClientSendingThread extends Thread{
 	private DatagramSocket sendSoc;
 	private int hostSoc;
 	private InetAddress hostAddr;
+	private ClientManager myManager;
 	
 	
-	public ClientSendingThread(DatagramSocket send, int dest, InetAddress addr){
+	public ClientSendingThread(DatagramSocket send, int dest, InetAddress addr, ClientManager manager){
 		hostSoc = dest;
 		sendSoc = send;
 		hostAddr = addr;
+		myManager = manager;
 	}
+
 
 	public void run(){
 		try{
@@ -37,6 +44,15 @@ public class ClientSendingThread extends Thread{
 		        if(msg.equals("EXIT")){
 		        	break;
 		        }
+		        //Temp Solution 
+		        if( msg.substring(0, 5).equals(GlobalVariables.REGISTER_ACTION)){
+		        	String keyStr = new String(GlobalVariables.delimiter + DatatypeConverter.printHexBinary(myManager.getPublicKey()));
+		        	msg = msg.concat(keyStr);
+		        }
+		        if(myManager.getRegStat() == true){
+		        	msg = msg.concat(GlobalVariables.delimiter + DatatypeConverter.printHexBinary(myManager.getSecretKey()));
+		        }
+		        //Temp Solution
 		        DatagramPacket sendPac = new DatagramPacket(msg.getBytes(), msg.length(), hostAddr, hostSoc);
 		        sendSoc.send(sendPac);
 			}

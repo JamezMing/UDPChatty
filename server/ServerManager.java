@@ -23,7 +23,7 @@ public class ServerManager {
 	private DatagramSocket serverSendingSoc;
 
 	
-	
+
 	public ServerManager(int sendingPort, int recevingPort, InetAddress addr, int port){
 		try {
 			serverListenSoc = new DatagramSocket(recevingPort);
@@ -48,6 +48,14 @@ public class ServerManager {
 		}
 	}
 	
+	public int getUserIndexByKey(byte[] key){
+		for (User u:userList){
+			if(Arrays.equals(u.getSecret(), key)){
+				return userList.indexOf(u); 
+			}
+		}
+		return -1;
+	}
 	
 	public void init(){
 		ServerListenThread lisTh = new ServerListenThread(serverListenSoc, this);
@@ -125,14 +133,14 @@ public class ServerManager {
 	}
 	
 	//The function has 2 return states, 0 for register successful, 1 for full server, 2 for user has already registered
-	public synchronized int registerClient(String name, String address, int portNum) throws UnknownHostException, HasRegisteredException{ 
+	public synchronized int registerClient(String name, String address, int portNum, byte[] key) throws UnknownHostException, HasRegisteredException{ 
 		if(hasUser(InetAddress.getByName(address), name)){
 			return 2;
 		}
 		if(userList.size() >= 5){
 			return 1;
 		}
-		User newUser = new User(name, InetAddress.getByName(address), portNum);
+		User newUser = new User(name, InetAddress.getByName(address), portNum, key);
 		newUser.register();
 		userList.add(newUser);
 		return 0;
@@ -171,6 +179,8 @@ public class ServerManager {
 		}
 		return results;
 	}
+	
+
 	
 	public User findUserByName_Single(String name){
 		for(User u:userList){

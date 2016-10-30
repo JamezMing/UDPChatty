@@ -1,6 +1,11 @@
 package requestsParser;
 
+import java.math.BigInteger;
+import java.net.InetAddress;
 import java.util.ArrayList;
+
+import javax.xml.bind.DatatypeConverter;
+
 import global.GlobalVariables;
 import global.HasRegisteredException;
 import global.User;
@@ -25,6 +30,8 @@ public class RequestExecutor extends Thread{
 		return fields;
 	}
 	
+
+	
 	public void processRequest() throws Exception{
 		String type = new String();		
 		String[] args = fields;
@@ -33,7 +40,8 @@ public class RequestExecutor extends Thread{
 		switch(type){
 		case GlobalVariables.REGISTER_ACTION:
 			index = new Integer(args[1]);
-			User newUser = new User(args[2], req.getSenderAddr() , (int)new Integer(args[4]));
+			byte[] cliPubKey = new BigInteger(args[5],16).toByteArray();
+			User newUser = new User(args[2], req.getSenderAddr() , (int)new Integer(args[4]), cliPubKey);
 			if(newUser.logHistoryRequest(req, index) == false){
 				String responce = new String(GlobalVariables.REGISTER_DENIED + GlobalVariables.delimiter + index.toString());
 				new ServerSendingThread(myManager.getServerSendingPort(), newUser, responce).start();
@@ -41,7 +49,7 @@ public class RequestExecutor extends Thread{
 			}
 			if(!myManager.hasUser(req.getSenderAddr(),args[2]) && (myManager.getNumOfUser() < 5)){	
 				myManager.registerClient(newUser);
-				String responce = new String(GlobalVariables.REGISTER_SUCCESS + GlobalVariables.delimiter + index.toString()); 
+				String responce = new String(GlobalVariables.REGISTER_SUCCESS + GlobalVariables.delimiter + index.toString() + GlobalVariables.delimiter + DatatypeConverter.printHexBinary(newUser.getPublicKey())); 
 				new ServerSendingThread(myManager.getServerSendingPort(), newUser, responce).start();
 			}
 			else if((myManager.getNumOfUser() >= 5)){
@@ -57,12 +65,15 @@ public class RequestExecutor extends Thread{
 		case GlobalVariables.PUBLISH_ACTION:
 			index = new Integer(args[1]);
 			int tar = myManager.getUserInList(args[2], req.getSenderAddr());
+			int key_tar = myManager.getUserIndexByKey(new BigInteger(args[6], 16).toByteArray());
+			if(key_tar != tar){
+				throw new Exception("Authentification error");
+			}
 			if (myManager.getUserList().isEmpty() || tar == -1){
-
 				//TODO: need to consturct a user not registered error in order to make it work
 				throw new Exception("The message is not sent from a validated user");
 			}
-			if(myManager.getUserList().get(tar).logHistoryRequest(req, index) == false){
+			if(myManager.getUserList().get(key_tar).logHistoryRequest(req, index) == false){
 				String responce = new String(GlobalVariables.PUBLISH_DENIED + GlobalVariables.delimiter + index.toString());
 				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar), responce).start();
 				break;
@@ -92,41 +103,80 @@ public class RequestExecutor extends Thread{
 				default:
 					throw new Exception("The server is in an invalid state");
 				}
-				myManager.getUserList().get(tar).setReceivePort(new Integer(args[3]));
-				myManager.getUserList().get(tar).setAvaliability(isOn);
+				myManager.getUserList().get(key_tar).setReceivePort(new Integer(args[3]));
+				myManager.getUserList().get(key_tar).setAvaliability(isOn);
 				String usernames = args[5];
 				String[] userNameList = usernames.split(" ");
 				for (String n:userNameList){
 					User u = myManager.findUserByName_Single(n);
 					if(u!=null){
-						myManager.getUserList().get(tar).makeFriend(u);
+						myManager.getUserList().get(key_tar).makeFriend(u);
 					}
 				}
 				String msgNew  = rawMsg.replace(GlobalVariables.PUBLISH_ACTION, GlobalVariables.PUBLISH_SUCCESS);
-				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar), msgNew).start();
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(key_tar), msgNew).start();
 			}
 			else{
 				String responce = new String(GlobalVariables.PUBLISH_DENIED + GlobalVariables.delimiter + index.toString());
-				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar), responce).start();
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(key_tar), responce).start();
 			}
 			break;
 		case GlobalVariables.IMFORMATION_REQUEST_ACTION:
 			index = new Integer(args[1]);
 			int tar_2 = myManager.getUserInList(args[2], req.getSenderAddr());
-			if (myManager.getUserList().isEmpty() || tar_2 == -1){
-				//TODO: need to consturct a user not registered error in order to make it work
+			int tar_key2 = myManager.getUserIndexByKey(new BigInteger(args[3], 16).toByteArray());
+			if (myManager.getUserList().isEmpty() || tar_key2 == -1){
 				throw new Exception("The message is not sent from a validated user");
 			}
-			if(myManager.getUserList().get(tar_2).hasIndexLogged(index) == false){
+			if(myManager.getUserList().get(tar_key2).hasIndexLogged(index) == false){
 				String responce = new String(GlobalVariables.INFORMATION_REQUEST_DENIED + GlobalVariables.delimiter + index.toString());
-				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_2), responce).start();
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_key2), responce).start();
 				break;
 			}
-			Request retrieved = myManager.getUserList().get(tar_2).retrieveHistoryItem(index);
+			Request retrieved = myManager.getUserList().get(tar_key2).retrieveHistoryItem(index);
 			String msgNew = retrieved.getMessage();
-			new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_2), msgNew).start();
+			new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_key2), msgNew).start();
+			break;
+		
+		case GlobalVariables.USER_INFO_REQUEST_ACTION:
+			index = new Integer(args[1]);
+			String tarName = args[2];
+			int tar_key3 = myManager.getUserIndexByKey(new BigInteger(args[3], 16).toByteArray());
+			if (myManager.getUserList().isEmpty() || tar_key3 == -1){
+				throw new Exception("The message is not sent from a validated user");
+			}
+			if(myManager.getUserList().get(tar_key3).logHistoryRequest(req, index) == false){
+				String responce = new String(GlobalVariables.USER_INFO_REQUEST_DENIED + GlobalVariables.delimiter + index.toString());
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_key3), responce).start();
+				break;
+			}
+			User tarUser = myManager.findUserByName_Single(tarName);
+			if(tarUser == null){
+				String responce = new String(GlobalVariables.REFER_ACTION + GlobalVariables.delimiter + index.toString() + GlobalVariables.delimiter + myManager.getNextServerAddr().toString()
+						+ GlobalVariables.delimiter + myManager.getNextServerPort());
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_key3), responce).start();
+				break;
+			}
+			else if(!tarUser.isFriend(myManager.getUserList().get(tar_key3))){
+				String responce = new String(GlobalVariables.USER_INFO_REQUEST_DENIED + GlobalVariables.delimiter + tarName);
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_key3), responce).start();
+				break;
+			}
+			else if(tarUser.returnAvaliability() == false){
+				String responce = new String(GlobalVariables.USER_INFO_REQUEST_SUCCESS + GlobalVariables.delimiter  
+						+ index.toString() + GlobalVariables.delimiter + tarName + GlobalVariables.delimiter + "off");
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_key3), responce).start();
+				break;
+			}
+			else{
+				String responce = new String(GlobalVariables.USER_INFO_REQUEST_SUCCESS + GlobalVariables.delimiter  
+						+ index.toString() + GlobalVariables.delimiter + tarName + GlobalVariables.delimiter + tarUser.getRecevingPort()
+						+ GlobalVariables.delimiter + tarUser.getAddr().toString());
+				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_key3), responce).start();
+			}
 			break;
 			
+		case GlobalVariables.BYE_ACTION:
 			
 				
 				//TODO

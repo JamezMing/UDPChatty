@@ -17,12 +17,13 @@ public class GlobalVariables {
 	public static final String REFER_ACTION = "ref_a";
 	public static final String CHAT_ACTION = "cha_a";
 	public static final String BYE_ACTION = "bye_a";
+	public static final String INFORMATION_REQUEST_DENIED = "inq_d";
+	public static final String PUBLIC_KEY = "pub_k";
 	
 	public static final String token = new String("(?<!%a)%_");
 	public static final String delimiter = new String("%_");
 	
 	public static final Object lock1 = new Object();
 	public static final Object lock2 = new Object();
-	public static final String INFORMATION_REQUEST_DENIED = "inq_d";
 
 }
