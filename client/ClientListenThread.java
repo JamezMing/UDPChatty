@@ -30,14 +30,15 @@ public class ClientListenThread extends Thread{
 					myManager.decodeSecret(new BigInteger(strRec.split(GlobalVariables.delimiter)[2], 16).toByteArray());
 					System.out.println("Register Successful");
 				}
-				
-				String str_receive = new String(recPac.getData(),0,recPac.getLength()) +   
-	                    " from " + recPac.getAddress().getHostAddress() + ":" + recPac.getPort();  
-				System.out.println(str_receive);
-				recPac.setLength(1024);
+				if(new String(recPac.getData()).startsWith(GlobalVariables.CHAT_ACTION)){
+					String str_receive = new String(recPac.getData(),0,recPac.getLength()) +   
+		                    " from " + recPac.getAddress().getHostAddress() + ":" + recPac.getPort();  
+					System.out.println(str_receive);
+					recPac.setLength(1024);
+				}
 			}
 			listSoc.close();
-
+			
 
 		} catch (SocketException e) {
 			// TODO Auto-generated catch block

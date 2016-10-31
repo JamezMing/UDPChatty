@@ -45,9 +45,13 @@ public class ClientSendingThread extends Thread{
 		        	break;
 		        }
 		        //Temp Solution 
-		        if( msg.substring(0, 5).equals(GlobalVariables.REGISTER_ACTION)){
+		        if(msg.substring(0, 5).equals(GlobalVariables.REGISTER_ACTION)){
 		        	String keyStr = new String(GlobalVariables.delimiter + DatatypeConverter.printHexBinary(myManager.getPublicKey()));
 		        	msg = msg.concat(keyStr);
+		        }
+		        if(msg.substring(0, 5).equals(GlobalVariables.REGISTER_ACTION)){
+		        	String[] argtalk = msg.split(GlobalVariables.delimiter);
+		        	myManager.chatWithUser(argtalk[1], InetAddress.getByName(argtalk[2]), new Integer(argtalk[3]));
 		        }
 		        if(myManager.getRegStat() == true){
 		        	msg = msg.concat(GlobalVariables.delimiter + DatatypeConverter.printHexBinary(myManager.getSecretKey()));

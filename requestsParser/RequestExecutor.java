@@ -175,17 +175,13 @@ public class RequestExecutor extends Thread{
 				new ServerSendingThread(myManager.getServerSendingPort(), myManager.getUserList().get(tar_key3), responce).start();
 			}
 			break;
-			
-		case GlobalVariables.BYE_ACTION:
-			
-				
+
 				//TODO
 		}
 	}
 	
 
 	
-
 	public void run(){
 		System.out.println("The Request has been received");
 		System.out.println(rawMsg);

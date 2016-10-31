@@ -10,12 +10,14 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.InvalidParameterSpecException;
 
 import deprecated.ClientSignatureGen;
+import global.GlobalVariables;
 
 
 public class ClientManager {
 	private DatagramSocket recevingPort;
 	private DatagramSocket sendingPort;
 	private InetAddress hostAddr;
+	private String myName;
 	private int hostRecPort;
 	private byte[] publicKey;
 	private byte[] secretKey;
@@ -23,6 +25,24 @@ public class ClientManager {
 	private boolean isRegistered = false;
 	
 	public ClientManager(int recPortNum, int sendPortNum, String addr, int hostPortNum) throws SocketException, UnknownHostException{
+		recevingPort = new DatagramSocket(recPortNum);
+		sendingPort = new DatagramSocket(sendPortNum);
+		hostAddr = InetAddress.getByName(addr);
+		hostRecPort = hostPortNum;
+		myName = new String("Default");
+		sigGen = new ClientSignatureGen();
+		try {
+			sigGen.init();
+			publicKey = sigGen.getPublicKey();
+		} catch (InvalidKeyException | NoSuchAlgorithmException | InvalidParameterSpecException
+				| InvalidAlgorithmParameterException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+	}
+	
+	public ClientManager(String name, int recPortNum, int sendPortNum, String addr, int hostPortNum) throws SocketException, UnknownHostException{
 		recevingPort = new DatagramSocket(recPortNum);
 		sendingPort = new DatagramSocket(sendPortNum);
 		hostAddr = InetAddress.getByName(addr);
@@ -37,6 +57,10 @@ public class ClientManager {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	protected DatagramSocket getSendingSoc(){
+		return sendingPort;
 	}
 	
 	protected void decodeSecret(byte[] key){
@@ -64,6 +88,17 @@ public class ClientManager {
 		senTh.start();
 		ClientListenThread lisTh = new ClientListenThread(recevingPort, this);
 		lisTh.start();
+	}
+	
+	public String getName(){
+		return myName;
+	}
+	
+	//User input format: chat + message + tarAddr + tarPort
+	public void chatWithUser(String msg, InetAddress addr, Integer recPort){
+		String msgSend = new String(GlobalVariables.CHAT_ACTION + GlobalVariables.delimiter + myName + 
+				GlobalVariables.delimiter + hostAddr + GlobalVariables.delimiter  + hostRecPort);
+		new ClientTalkThread(msgSend, sendingPort, addr, recPort).start();
 	}
 	
 	public boolean getRegStat(){
